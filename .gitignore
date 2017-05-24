@@ -231,5 +231,7 @@ $RECYCLE.BIN/
 # ISIS
 *.PWI
 *.DBK
+*.pdsbak
+*.workspace
 
 # End of https://www.gitignore.io/api/c,c++,sdcc,linux,kicad,eagle,altium,windows,libreoffice,atmelstudio

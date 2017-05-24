@@ -81,6 +81,56 @@ void set_addr(uint8_t addr)
 		PORTD |= _BV(PORTD5);
 		break;
 	}
+	
+	return;
+}
+
+void set_clock(void)
+{
+	PORTB |= _BV(PORTB2);
+	_delay_ms(1);
+	PORTB &= ~_BV(PORTB2);
+	
+	return;
+}
+
+void set_clear(void)
+{
+	PORTB |= _BV(PORTB3);
+	_delay_ms(1);
+	PORTB &= ~_BV(PORTB3);
+	
+	return;
+}
+
+void serial_clock(void)
+{
+	PORTB |= _BV(PORTB1);
+	_delay_ms(1);
+	PORTB &= ~_BV(PORTB1);
+	
+	return;
+}
+
+void serial_out(uint8_t var)
+{
+	uint8_t cont;
+	
+	for (cont = 0; cont < 8; ++cont)
+	{
+		if ((_BV(7 - cont) & var) != 0)
+		{
+			PORTB |= _BV(PORTB0);
+		}
+		else
+		{
+			PORTB &= ~_BV(PORTB0);
+		}
+		
+		serial_clock();
+	}
+	
+	return;
 }
 
 void init(void)
@@ -90,8 +140,22 @@ void init(void)
 	DDRD |= _BV(DDD4);
 	DDRD |= _BV(DDD5);
 	
+	DDRB |= _BV(DDB0);
+	DDRB |= _BV(DDB1);
+	DDRB |= _BV(DDB2);
+	DDRB |= _BV(DDB3);
+	
 	uart_init(UART_BAUD_SELECT(UART_BAUD_RATE, F_CPU));
 	sei();
+	
+	return;
+}
+
+void put_p(uint8_t a, uint8_t c)
+{
+	set_addr(a);
+	serial_out(c);
+	set_clock();
 	
 	return;
 }
@@ -105,16 +169,31 @@ int main(void)
 	
 	while (1)
 	{
-		set_addr(m_addr);
-		uart_printf("addr %u\n\r", m_addr);
-		m_addr++;
-		
-		if (m_addr > 8)
+		switch(m_addr++)
 		{
+			case 0:
+			put_p(0, 0b10101010);
+			put_p(1, 0b01010101);
+			put_p(2, 0b10101010);
+			put_p(3, 0b01010101);
+			put_p(4, 0b10101010);
+			_delay_ms(1000);
+			break;
+			
+			case 1:
+			put_p(0, 0b01010101);
+			put_p(1, 0b10101010);
+			put_p(2, 0b01010101);
+			put_p(3, 0b10101010);
+			put_p(4, 0b01010101);
+			_delay_ms(1000);
+			break;
+			
+			default:
 			m_addr = 0;
+			break;
 		}
 		
-		_delay_ms(1000);
 	}
 	
 	return -1;
